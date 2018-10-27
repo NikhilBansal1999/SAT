@@ -1,5 +1,6 @@
 import sys
 import time
+import copy
 
 num_literals=0
 start_time=0
@@ -55,12 +56,17 @@ def remove_redundancy(con_list):
             i=i+1
             continue
         else:
-            j=i+1
+            j=0
             while j<len(con_list):
+                if i==j:
+                    j=j+1
+                    continue
                 if type(con_list[j]) is list:
                     for elem in con_list[j]:
                         if elem == con_list[i]:#this condition is redundant
                             del con_list[j]
+                            if j<i:
+                                i=i-1
                             j=j-1
                             break
                         elif (elem + con_list[i])==0:#this literal is not satisfiable
@@ -72,6 +78,8 @@ def remove_redundancy(con_list):
                 else:
                     if con_list[j]==con_list[i]:
                         del con_list[j]
+                        if j<i:
+                            i=i-1
                         continue
                     if (con_list[j]+con_list[i])==0:#inconsistencies found
                         return 0
@@ -94,6 +102,7 @@ def solve(conditions):
     num_break=0
 
     while len(conditions) > 0:
+        print(len(conditions))
         #check if there is a satisfying assignment
         num_break=num_break+1
         n=0
@@ -128,7 +137,7 @@ def solve(conditions):
                     con=conditions.pop(i)
                     list_in_con=con.pop(j)
                     for elem in list_in_con:
-                        con_app=con+[elem]
+                        con_app=copy.deepcopy(con)+[elem]
                         con_app=remove_redundant_lists(con_app)
                         consistency=check_validity(con_app)
                         if consistency==1:
