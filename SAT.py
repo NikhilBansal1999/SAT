@@ -13,15 +13,25 @@ def read_from_file(infile):
     cons.append(list())
     for line in inhand:
         line_num=line_num+1
-        if line_num==1:
+        inp=line.strip().split()
+        if inp[0]=='c':
+            continue
+        elif inp[0]=='p':
+            num_literals=int(inp[2])
+            continue
+        else:
+            inp2=[int(k) for k in inp]
+            cons[0].append(inp2[:len(inp)-1])
+        '''if line_num==1:
             inp=line.strip().split()
             num_literals=int(inp[2])
             continue
         else:
             inp=line.strip().split()
             inp2=[int(k) for k in inp]
-            cons[0].append(inp2[:len(inp)-1])
+            cons[0].append(inp2[:len(inp)-1])'''
 
+    inhand.close()
     return cons
 
 def check_validity(con_list):#returns 1 for consistent list else return 0
@@ -96,13 +106,12 @@ def list_free(con_list):#returns 1 if the list has no nested list else returns 0
 
     return 1
 
-def solve(conditions):
+def solve(conditions,outfile):
     global num_literals
     global start_time
     num_break=0
 
     while len(conditions) > 0:
-        print(len(conditions))
         #check if there is a satisfying assignment
         num_break=num_break+1
         n=0
@@ -115,15 +124,20 @@ def solve(conditions):
                         if j>0:
                             sat_list[j-1]=1
                     print("SAT")
+                    outhand=open(outfile,'w')
+                    outhand.write("SAT\n")
                     for i in range(len(sat_list)):
                         if sat_list[i]==0:
                             print(-1*(i+1),end=" ")
+                            outhand.write(str(-1*(i+1))+" ")
                         else:
                             print((i+1),end=" ")
+                            outhand.write(str(i+1)+" ")
                     print()
                     end_time=time.time()
                     print(end_time-start_time)
                     print("Broke: ",num_break)
+                    outhand.close()
                     sys.exit()
                 else:#this is an UNSAT clause
                     del conditions[n]
@@ -155,13 +169,20 @@ def solve(conditions):
     end_time=time.time()
     print(end_time-start_time)
     print("Broke: ",num_break)
+    outhand=open(outfile,'w')
+    outhand.write("UNSAT\n")
+    outhand.close()
     print("UNSAT")
 
 if __name__=="__main__":
     start_time=time.time()
-    infile=sys.argv[1]
-    condition=read_from_file(infile)
-    condition[0]=remove_redundant_lists(condition[0])
-    condition[0]=remove_redundancy(condition[0])
-    condition[0]=remove_redundant_lists(condition[0])
-    solve(condition)
+    if len(sys.argv)==3:
+        infile=sys.argv[1]
+        outfile=sys.argv[2]
+        condition=read_from_file(infile)
+        condition[0]=remove_redundant_lists(condition[0])
+        condition[0]=remove_redundancy(condition[0])
+        condition[0]=remove_redundant_lists(condition[0])
+        solve(condition,outfile)
+    else:
+        print("USAGE: python3 SAT.py infile outfile")
